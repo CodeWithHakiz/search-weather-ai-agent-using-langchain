@@ -1,4 +1,5 @@
 import os
+import time
 import certifi
 import requests
 import streamlit as st
@@ -117,16 +118,21 @@ def main():
         submitted = st.form_submit_button("Run")
 
     if submitted and user_question.strip():
-        st.subheader("Response")
-        output_container = st.empty()
-        full_response = ""
-
-        for chunk in stream_agent(user_question):
-            full_response += str(chunk)
-            output_container.markdown(full_response)
-
-        if not full_response.strip():
-            st.warning("No response returned from the agent.")
+        with st.spinner("Agent is thinking..."):
+            try:
+                final_response = run_agent(user_question)
+            except Exception as error:
+                st.error(f"Unable to get a response: {error}")
+            else:
+                if final_response and str(final_response).strip():
+                    st.subheader("Response")
+                    st.markdown(str(final_response))
+                    success_alert = st.empty()
+                    success_alert.success("Response generated successfully.")
+                    time.sleep(2)
+                    success_alert.empty()
+                else:
+                    st.warning("No response returned from the agent.")
 
 
 if __name__ == "__main__":
